@@ -11,7 +11,7 @@ public class PathFollower : MonoBehaviour
     public float speed;
     public LayerMask groundLayer;
     bool jump, jumped, gravity;
-    float distanceTravelled;
+    float distanceTravelled, rotate = 0;
     Rigidbody rb;
     Vector3 followPos, followRot;
     public PlayerState playerState;
@@ -76,6 +76,7 @@ public class PathFollower : MonoBehaviour
             default:
                 break;
         }
+        Debug.Log(player.transform.localEulerAngles.x);
         switch (playerState)
         {
             case PlayerState.Cube:
@@ -107,16 +108,25 @@ public class PathFollower : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && jump)
         {
             rb.AddForce(Vector3.up * 250);
-            player.transform.DOLocalRotate(new Vector3(transform.localEulerAngles.x + 90, transform.localEulerAngles.y, transform.localEulerAngles.z), .75f).SetEase(Ease.Linear);
+            switch (rotate)
+            {
+                case 0:
+                    rotate = 90;
+                    break;
+                case 90:
+                    rotate = 180;
+                    break;
+                case 180:
+                    rotate = 90;
+                    break;
+                default:
+                    break;
+            }
+            player.transform.DOLocalRotate(new Vector3(transform.localEulerAngles.x + rotate, transform.localEulerAngles.y, transform.localEulerAngles.z), .75f).SetEase(Ease.Linear);
             jumped = true;
         }
         distanceTravelled += Time.deltaTime;
-        //if (Input.GetKeyDown(KeyCode.C))
-        //{
-        //    gravity = !gravity;
-        //}
-        //followPos = new Vector3(transform.position.x, transform.position.y + .25f, transform.position.z);
-        followRot = new Vector3(transform.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
+        followRot = new Vector3(transform.localEulerAngles.x + rotate, transform.localEulerAngles.y, transform.localEulerAngles.z);
         if (gravityState == GravityState.Gravity)
         {
             transform.position = gravityPathCreator.path.GetPointAtDistance(distanceTravelled);
@@ -137,6 +147,11 @@ public class PathFollower : MonoBehaviour
             followPos = new Vector3(transform.position.x, player.transform.position.y, transform.position.z);
             followRot = new Vector3(transform.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
+        //if (rotate)
+        //{
+        //    followPos = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+        //    followRot = new Vector3(player.transform.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
+        //}
         player.position = followPos;
         player.localEulerAngles = followRot;
     }
