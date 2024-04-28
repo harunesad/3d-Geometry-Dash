@@ -6,13 +6,14 @@ using PathCreation;
 
 public class PlayerMove : MonoBehaviour
 {
-    public PathCreator gravityPathCreator, ungravityPathCreator;
+    public PathCreator gravityPathCreator, ungravityPathCreator, middleTrianglePathCreator;
     public Transform player;
     public float speed;
     public LayerMask groundLayer;
-    bool jump, jumped, gravity;
-    float distanceTravelled, currentRotationX;
-    public float rotate = 0;
+    bool jump;
+    public bool gravity, jumped;
+    float distanceTravelled;
+    public float rotate = 0, currentRotationX;
     Rigidbody rb;
     Vector3  followRot;
     PathFollower pathFollower;
@@ -57,7 +58,8 @@ public class PlayerMove : MonoBehaviour
         {
             pathFollower.followPos = new Vector3(transform.position.x, player.transform.position.y, transform.position.z);
         }
-        player.position = pathFollower.followPos;
+        player.position = Vector3.Lerp(player.position, pathFollower.followPos, Time.deltaTime * 50);
+        //player.position = pathFollower.followPos;
         player.localEulerAngles = followRot;
     }
     public void SphereMove()
@@ -79,10 +81,22 @@ public class PlayerMove : MonoBehaviour
         {
             pathFollower.followPos = new Vector3(transform.position.x, player.transform.position.y, transform.position.z);
         }
-        player.position = pathFollower.followPos;
+        player.position = Vector3.Lerp(player.position, pathFollower.followPos, Time.deltaTime * 50);
+        //player.position = pathFollower.followPos;
         player.rotation = Quaternion.Euler(player.rotation.eulerAngles.x, targetRotation.eulerAngles.y, targetRotation.eulerAngles.z);
         currentRotationX += Time.deltaTime * 50;
         player.rotation = Quaternion.Euler(currentRotationX, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+    }
+    public void TriangleMove()
+    {
+        PathControl();
+        if (gravity)
+        {
+            pathFollower.followPos = new Vector3(transform.position.x, player.transform.position.y, transform.position.z);
+        }
+        player.position = Vector3.Lerp(player.position, pathFollower.followPos, Time.deltaTime * 50);
+        //player.position = pathFollower.followPos;
+        player.localEulerAngles = followRot;
     }
     void PathControl()
     {
@@ -96,6 +110,14 @@ public class PlayerMove : MonoBehaviour
         {
             transform.position = ungravityPathCreator.path.GetPointAtDistance(distanceTravelled);
             transform.rotation = ungravityPathCreator.path.GetRotationAtDistance(distanceTravelled);
+        }
+        else if (pathFollower.gravityState == PathFollower.GravityState.Middle)
+        {
+            if (pathFollower.playerState == PathFollower.PlayerState.Triangle)
+            {
+                transform.position = middleTrianglePathCreator.path.GetPointAtDistance(distanceTravelled);
+                transform.rotation = middleTrianglePathCreator.path.GetRotationAtDistance(distanceTravelled);
+            }
         }
     }
     void JumpControl()
@@ -113,25 +135,31 @@ public class PlayerMove : MonoBehaviour
     }
     public void Gravity(PathFollower.GravityState gravity)
     {
+        Debug.Log(jumped);
         if (Input.GetKeyDown(KeyCode.C) && !this.gravity && !jumped)
         {
             pathFollower.gravityState = gravity;
+            PathControl();
             this.gravity = true;
             switch (gravity)
             {
                 case PathFollower.GravityState.Gravity:
-                    player.transform.DOMoveY(gravityPathCreator.transform.position.y + .1f, .5f).SetEase(Ease.Linear).OnComplete(() =>
+                    player.transform.DOMoveY(transform.position.y + .1f, .2f).SetEase(Ease.Linear).OnComplete(() =>
                     {
                         this.gravity = false;
                     });
                     break;
                 case PathFollower.GravityState.NonGravity:
-                    player.transform.DOMoveY(ungravityPathCreator.transform.position.y - .1f, .5f).SetEase(Ease.Linear).OnComplete(() =>
+                    player.transform.DOMoveY(transform.position.y - .1f, .2f).SetEase(Ease.Linear).OnComplete(() =>
                     {
                         this.gravity = false;
                     });
                     break;
                 case PathFollower.GravityState.Middle:
+                    player.transform.DOMoveY(transform.position.y, .2f).SetEase(Ease.Linear).OnComplete(() =>
+                    {
+                        this.gravity = false;
+                    });
                     break;
                 default:
                     break;

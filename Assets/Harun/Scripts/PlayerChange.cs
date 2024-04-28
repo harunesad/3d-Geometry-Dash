@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -32,15 +33,24 @@ public class PlayerChange : MonoBehaviour
                     other.GetComponent<SphereCollider>().enabled = true;
                     break;
                 case PathFollower.PlayerState.Triangle:
+                    other.GetComponent<BoxCollider>().enabled = true;
                     break;
                 case PathFollower.PlayerState.Submarine:
                     break;
                 default:
                     break;
             }
+            pathFollower.gravityState = PathFollower.GravityState.Gravity;
+            pathFollower.GetComponent<PlayerMove>().gravity = true;
+            pathFollower.GetComponent<PlayerMove>().player.DOMoveY(pathFollower.GetComponent<PlayerMove>().gravityPathCreator.transform.position.y + .1f, .5f).SetEase(Ease.Linear).OnComplete(() =>
+            {
+                pathFollower.GetComponent<PlayerMove>().gravity = false;
+            });
             other.GetComponent<MeshFilter>().mesh = newMesh;
             pathFollower.playerState = playerState;
             pathFollower.GetComponent<PlayerMove>().rotate = 0;
+            pathFollower.GetComponent<PlayerMove>().currentRotationX = 0;
+            pathFollower.GetComponent<PlayerMove>().jumped = false;
         }
     }
 }
