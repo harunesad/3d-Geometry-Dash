@@ -160,17 +160,17 @@ MonoBehaviour:
       - {x: 1.0037341, y: -0.27437496, z: 0.36102152}
       - {x: 2, y: 0, z: 0}
       - {x: 2.6137629, y: 0.16903234, z: -0.22241211}
-      - {x: 3.406043, y: 0.3503335, z: -0.91674805}
-      - {x: 3.4042969, y: 0.35, z: -0.9366505}
-      - {x: 3.401598, y: 0.34948453, z: -0.96741074}
-      - {x: 4.812198, y: -0.013484687, z: -1.8330078}
-      - {x: 4.817871, y: 0, z: -1.788678}
-      - {x: 4.8192887, y: 0.003369626, z: -1.7776006}
-      - {x: 5.659403, y: 0.39621648, z: -2.1713536}
-      - {x: 5.8152156, y: 0.34851074, z: -2.2905853}
-      - {x: 6.1276917, y: 0.25283873, z: -2.5296998}
-      - {x: 6.9864964, y: -0.009277344, z: -2.9784813}
-      - {x: 7, y: 0, z: -3}
+      - {x: 3.5017462, y: 0.3503335, z: -0.98009753}
+      - {x: 3.5, y: 0.35, z: -1}
+      - {x: 3.497301, y: 0.34948453, z: -1.0307603}
+      - {x: 4.7943273, y: -0.36348477, z: -1.8443297}
+      - {x: 4.8, y: -0.35, z: -1.8}
+      - {x: 4.801418, y: -0.34663048, z: -1.7889225}
+      - {x: 5.820454, y: 0.39107877, z: -2.3180172}
+      - {x: 6, y: 0.34851074, z: -2.4}
+      - {x: 6.405206, y: 0.2524414, z: -2.5850222}
+      - {x: 7, y: -0.35927734, z: -3}
+      - {x: 7, y: -0.35, z: -3}
       isClosed: 0
       space: 0
       controlMode: 0
@@ -186,7 +186,7 @@ MonoBehaviour:
       - 0
       - 0
       - 0
-      globalNormalsAngle: 0
+      globalNormalsAngle: 90
       flipNormals: 0
     vertexPathUpToDate: 1
     vertexPathMaxAngleError: 0.3
@@ -205,7 +205,7 @@ MonoBehaviour:
     showPathOptions: 1
     showVertexPathDisplayOptions: 0
     showVertexPathOptions: 1
-    showNormals: 0
+    showNormals: 1
     showNormalsHelpInfo: 0
     tabIndex: 0
   initialized: 1
@@ -218,7 +218,7 @@ Transform:
   m_GameObject: {fileID: 178157491}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -271,7 +271,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   followPos: {x: 0, y: 0, z: 0}
   playerState: 0
-  offSet: {x: 0, y: 3, z: -10}
+  offSet: {x: 0, y: 2, z: -10}
   gravityState: 0
   lastGravityState: 0
 --- !u!114 &244012715
@@ -289,12 +289,14 @@ MonoBehaviour:
   gravityPathCreator: {fileID: 1829540505}
   ungravityPathCreator: {fileID: 1978101226}
   middleTrianglePathCreator: {fileID: 178157492}
+  middleSubmarinePathCreator: {fileID: 2106986495}
   player: {fileID: 1855705285}
   speed: 5
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
   gravity: 0
+  jumped: 0
   rotate: 0
   currentRotationX: 0
 --- !u!1 &344822799
@@ -509,8 +511,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6fb4d9b8b1726dd43937eca3daa96476, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  newMesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
-  playerState: 2
+  newMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  playerState: 1
   pathFollower: {fileID: 244012714}
 --- !u!1 &648829938
 GameObject:
@@ -604,6 +606,112 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &756280097
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 756280101}
+  - component: {fileID: 756280100}
+  - component: {fileID: 756280099}
+  - component: {fileID: 756280098}
+  m_Layer: 3
+  m_Name: NonGravityPlane
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!64 &756280098
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 756280097}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &756280099
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 756280097}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &756280100
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 756280097}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &756280101
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 756280097}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.6728947, y: 2, z: -1.4771385}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1236624843
 GameObject:
   m_ObjectHideFlags: 0
@@ -617,7 +725,7 @@ GameObject:
   - component: {fileID: 1236624845}
   - component: {fileID: 1236624844}
   m_Layer: 3
-  m_Name: Plane
+  m_Name: GravityPlane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -747,13 +855,16 @@ MonoBehaviour:
       - {x: 0.9667969, y: -0.014466673, z: 0.3611724}
       - {x: 2, y: 0, z: 0}
       - {x: 2.6365154, y: 0.008912342, z: -0.22250395}
-      - {x: 3.0046196, y: -0.0029755807, z: -0.70261115}
-      - {x: 3.4042969, y: 0, z: -0.9366505}
-      - {x: 4.3220215, y: 0.006832421, z: -1.4740433}
-      - {x: 4.4158845, y: -0.00061606296, z: -1.5157304}
-      - {x: 4.817871, y: 0, z: -1.788678}
-      - {x: 5.8706055, y: 0.0016133636, z: -2.5034814}
-      - {x: 6.0094976, y: 0.029067725, z: -2.1105504}
+      - {x: 3.1003227, y: -0.0029755807, z: -0.76596063}
+      - {x: 3.5, y: 0, z: -1}
+      - {x: 4.4177246, y: 0.006832421, z: -1.5373927}
+      - {x: 4.371788, y: 0.01367383, z: -1.5707828}
+      - {x: 4.8, y: 0, z: -1.8}
+      - {x: 5.918786, y: -0.035725474, z: -2.3988733}
+      - {x: 5.5595927, y: 0.1152347, z: -1.9894814}
+      - {x: 6, y: 0, z: -2.4}
+      - {x: 6.3327045, y: -0.087053776, z: -2.7101254}
+      - {x: 6.743031, y: -0.1873914, z: -3.0643368}
       - {x: 7, y: 0, z: -3}
       isClosed: 0
       space: 0
@@ -769,7 +880,8 @@ MonoBehaviour:
       - 0
       - 0
       - 0
-      globalNormalsAngle: 0
+      - 0
+      globalNormalsAngle: 90
       flipNormals: 0
     vertexPathUpToDate: 1
     vertexPathMaxAngleError: 0.3
@@ -788,7 +900,7 @@ MonoBehaviour:
     showPathOptions: 1
     showVertexPathDisplayOptions: 0
     showVertexPathOptions: 1
-    showNormals: 0
+    showNormals: 1
     showNormalsHelpInfo: 0
     tabIndex: 0
   initialized: 1
@@ -958,7 +1070,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
@@ -999,13 +1111,16 @@ MonoBehaviour:
       - {x: 0.9667969, y: -0.014466673, z: 0.3611724}
       - {x: 2, y: 0, z: 0}
       - {x: 2.6365154, y: 0.008912342, z: -0.22250395}
-      - {x: 3.0046196, y: -0.0029755807, z: -0.70261115}
-      - {x: 3.4042969, y: 0, z: -0.9366505}
-      - {x: 4.3220215, y: 0.006832421, z: -1.4740433}
-      - {x: 4.4158845, y: -0.00061606296, z: -1.5157304}
-      - {x: 4.817871, y: 0, z: -1.788678}
-      - {x: 5.8706055, y: 0.0016133636, z: -2.5034814}
-      - {x: 6.0094976, y: 0.029067725, z: -2.1105504}
+      - {x: 3.1003227, y: -0.0029755807, z: -0.76596063}
+      - {x: 3.5, y: 0, z: -1}
+      - {x: 4.4177246, y: 0.006832421, z: -1.5373927}
+      - {x: 4.3728533, y: 0.0037326247, z: -1.568426}
+      - {x: 4.8, y: 0, z: -1.8}
+      - {x: 5.8803177, y: -0.009440362, z: -2.385685}
+      - {x: 5.275228, y: 0.083519936, z: -1.7971182}
+      - {x: 6, y: 0, z: -2.4}
+      - {x: 6.405745, y: -0.046756517, z: -2.7375083}
+      - {x: 6.893435, y: 0.053952098, z: -2.7457008}
       - {x: 7, y: 0, z: -3}
       isClosed: 0
       space: 0
@@ -1021,7 +1136,8 @@ MonoBehaviour:
       - 0
       - 0
       - 0
-      globalNormalsAngle: 0
+      - 0
+      globalNormalsAngle: 90
       flipNormals: 0
     vertexPathUpToDate: 1
     vertexPathMaxAngleError: 0.3
@@ -1040,7 +1156,7 @@ MonoBehaviour:
     showPathOptions: 1
     showVertexPathDisplayOptions: 0
     showVertexPathOptions: 1
-    showNormals: 0
+    showNormals: 1
     showNormalsHelpInfo: 0
     tabIndex: 0
   initialized: 1
@@ -1053,7 +1169,7 @@ Transform:
   m_GameObject: {fileID: 1978101225}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1070,12 +1186,12 @@ GameObject:
   - component: {fileID: 2106986496}
   - component: {fileID: 2106986495}
   m_Layer: 0
-  m_Name: UngravityPathCreator (2)
+  m_Name: MiddleSubmarinePathCreator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2106986495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1093,17 +1209,20 @@ MonoBehaviour:
       points:
       - {x: -2, y: 0, z: 0}
       - {x: -0.88929844, y: 0.057192758, z: 0}
-      - {x: 0.9667969, y: -0.014466673, z: 0.3611724}
+      - {x: 0.96060765, y: -0.16534077, z: 0.30081528}
       - {x: 2, y: 0, z: 0}
-      - {x: 2.6365154, y: 0.008912342, z: -0.22250395}
-      - {x: 3.0046196, y: -0.0029755807, z: -0.70261115}
-      - {x: 3.4042969, y: 0, z: -0.9366505}
-      - {x: 4.3220215, y: 0.006832421, z: -1.4740433}
-      - {x: 4.4158845, y: -0.00061606296, z: -1.5157304}
-      - {x: 4.817871, y: 0, z: -1.788678}
-      - {x: 5.8706055, y: 0.0016133636, z: -2.5034814}
-      - {x: 6.0094976, y: 0.029067725, z: -2.1105504}
-      - {x: 7, y: 0, z: -3}
+      - {x: 2.6359863, y: 0.10116917, z: -0.18406372}
+      - {x: 3.0974288, y: 0.3445585, z: -0.77533054}
+      - {x: 3.5, y: 0.3, z: -1}
+      - {x: 4.4172363, y: 0.1984759, z: -1.5118971}
+      - {x: 4.4295416, y: -0.40382934, z: -1.5722932}
+      - {x: 4.8, y: -0.31912172, z: -1.8}
+      - {x: 5.296953, y: -0.20549047, z: -2.1054578}
+      - {x: 5.2564435, y: 0.23158336, z: -2.0498602}
+      - {x: 6, y: 0.3264122, z: -2.4}
+      - {x: 6.370202, y: 0.3736256, z: -2.5743277}
+      - {x: 6.8344536, y: 0.12236416, z: -2.850906}
+      - {x: 7, y: -0.26726648, z: -3}
       isClosed: 0
       space: 0
       controlMode: 0
@@ -1118,9 +1237,10 @@ MonoBehaviour:
       - 0
       - 0
       - 0
-      globalNormalsAngle: 0
+      - 0
+      globalNormalsAngle: 90
       flipNormals: 0
-    vertexPathUpToDate: 0
+    vertexPathUpToDate: 1
     vertexPathMaxAngleError: 0.3
     vertexPathMinVertexSpacing: 0.01
     showTransformTool: 1
@@ -1137,7 +1257,7 @@ MonoBehaviour:
     showPathOptions: 1
     showVertexPathDisplayOptions: 0
     showVertexPathOptions: 1
-    showNormals: 0
+    showNormals: 1
     showNormalsHelpInfo: 0
     tabIndex: 0
   initialized: 1
@@ -1169,4 +1289,5 @@ SceneRoots:
   - {fileID: 244012713}
   - {fileID: 1855705285}
   - {fileID: 1236624847}
+  - {fileID: 756280101}
   - {fileID: 437548072}

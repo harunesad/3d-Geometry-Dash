@@ -38,6 +38,7 @@ public class PathFollower : MonoBehaviour
                 followPos = new Vector3(transform.position.x, transform.position.y + .1f, transform.position.z);
                 if (playerState == PlayerState.Cube || playerState == PlayerState.Sphere)
                 {
+                    playerMove.GravityJumpControl();
                     playerMove.Gravity(GravityState.NonGravity);
                 }
                 else
@@ -50,6 +51,7 @@ public class PathFollower : MonoBehaviour
                 followPos = new Vector3(transform.position.x, transform.position.y - .1f, transform.position.z);
                 if (playerState == PlayerState.Cube || playerState == PlayerState.Sphere)
                 {
+                    playerMove.NongravityJumpControl();
                     playerMove.Gravity(GravityState.Gravity);
                 }
                 else
@@ -86,6 +88,7 @@ public class PathFollower : MonoBehaviour
                 playerMove.TriangleMove();
                 break;
             case PlayerState.Submarine:
+                playerMove.SubmarineMove();
                 break;
             default:
                 break;
