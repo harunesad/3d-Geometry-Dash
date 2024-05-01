@@ -8,9 +8,9 @@ public class PathFollower : MonoBehaviour
 {
     PlayerMove playerMove;
     public Vector3 followPos;
-    public PlayerState playerState;
-    [SerializeField] Vector3 offSet;
-    Camera mainCam;
+    public Mesh startMesh;
+    public Vector3 startPos;
+    public PlayerState playerState, startPlayerState;
     public enum PlayerState
     {
         Cube,
@@ -18,7 +18,7 @@ public class PathFollower : MonoBehaviour
         Triangle,
         Submarine
     }
-    public GravityState gravityState, lastGravityState;
+    public GravityState gravityState, lastGravityState, startGravityState;
     public enum GravityState
     {
         Gravity,
@@ -28,7 +28,6 @@ public class PathFollower : MonoBehaviour
     private void Awake()
     {
         playerMove = GetComponent<PlayerMove>();
-        mainCam = Camera.main;
     }
     void Update()
     {
@@ -93,9 +92,6 @@ public class PathFollower : MonoBehaviour
             default:
                 break;
         }
-    }
-    private void LateUpdate()
-    {
-        mainCam.transform.position = Vector3.Lerp(mainCam.transform.position, playerMove.player.position + offSet, Time.deltaTime * 15);
+        playerMove.TrapCrash();
     }
 }

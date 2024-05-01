@@ -36,6 +36,7 @@ public class PlayerChange : MonoBehaviour
                     other.GetComponent<BoxCollider>().enabled = true;
                     break;
                 case PathFollower.PlayerState.Submarine:
+                    other.GetComponent<BoxCollider>().enabled = true;
                     break;
                 default:
                     break;
@@ -51,6 +52,11 @@ public class PlayerChange : MonoBehaviour
             pathFollower.GetComponent<PlayerMove>().rotate = 0;
             pathFollower.GetComponent<PlayerMove>().currentRotationX = 0;
             pathFollower.GetComponent<PlayerMove>().jumped = false;
+            pathFollower.startGravityState = PathFollower.GravityState.Gravity;
+            pathFollower.startPlayerState = playerState;
+            pathFollower.startMesh = newMesh;
+            pathFollower.startPos = other.transform.position;
+            pathFollower.GetComponent<PlayerMove>().startDistanceTravelled = pathFollower.GetComponent<PlayerMove>().distanceTravelled;
         }
     }
 }
