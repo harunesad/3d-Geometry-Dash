@@ -8,6 +8,9 @@ public class PlayerChange : MonoBehaviour
     [SerializeField] Mesh newMesh;
     [SerializeField] PathFollower.PlayerState playerState;
     [SerializeField] PathFollower pathFollower;
+    [SerializeField] bool gravity, nongravity, lightUpdate;
+    [SerializeField] Color lightColor;
+    [SerializeField] Light light;
     void Start()
     {
         
@@ -22,6 +25,7 @@ public class PlayerChange : MonoBehaviour
     {
         if (other.gameObject.layer == 6)
         {
+            PlayerMove playerMove = pathFollower.GetComponent<PlayerMove>();
             other.GetComponent<BoxCollider>().enabled = false;
             other.GetComponent<SphereCollider>().enabled = false;
             switch (pathFollower.playerState)
@@ -42,21 +46,32 @@ public class PlayerChange : MonoBehaviour
                     break;
             }
             pathFollower.gravityState = PathFollower.GravityState.Gravity;
-            pathFollower.GetComponent<PlayerMove>().gravity = true;
-            pathFollower.GetComponent<PlayerMove>().player.DOMoveY(pathFollower.GetComponent<PlayerMove>().gravityPathCreator.transform.position.y + .1f, .5f).SetEase(Ease.Linear).OnComplete(() =>
+            playerMove.PathControl();
+            playerMove.gravityChange = true;
+            playerMove.gravity = gravity;
+            playerMove.nongravity = nongravity;
+            if (gravity)
             {
-                pathFollower.GetComponent<PlayerMove>().gravity = false;
-            });
+                playerMove.PathUpdate(playerMove.transform.position.y + .1f);
+            }
+            else
+            {
+                playerMove.PathUpdate(playerMove.transform.position.y - .1f);
+            }
             other.GetComponent<MeshFilter>().mesh = newMesh;
             pathFollower.playerState = playerState;
-            pathFollower.GetComponent<PlayerMove>().rotate = 0;
-            pathFollower.GetComponent<PlayerMove>().currentRotationX = 0;
-            pathFollower.GetComponent<PlayerMove>().jumped = false;
+            playerMove.rotate = 0;
+            playerMove.currentRotationX = 0;
+            playerMove.jumped = false;
             pathFollower.startGravityState = PathFollower.GravityState.Gravity;
             pathFollower.startPlayerState = playerState;
             pathFollower.startMesh = newMesh;
             pathFollower.startPos = other.transform.position;
-            pathFollower.GetComponent<PlayerMove>().startDistanceTravelled = pathFollower.GetComponent<PlayerMove>().distanceTravelled;
+            playerMove.startDistanceTravelled = playerMove.distanceTravelled;
+            if (lightUpdate)
+            {
+                light.color = lightColor;
+            }
         }
     }
 }

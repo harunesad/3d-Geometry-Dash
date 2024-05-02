@@ -11,7 +11,7 @@ public class PlayerMove : MonoBehaviour
     public float speed;
     public LayerMask groundLayer, trapLayer;
     bool jump;
-    public bool gravity, jumped;
+    public bool gravityChange, jumped, gravity, nongravity;
     public float distanceTravelled, startDistanceTravelled;
     public float rotate = 0, currentRotationX;
     Rigidbody rb;
@@ -27,62 +27,40 @@ public class PlayerMove : MonoBehaviour
     public void CubeMove()
     {
         PathControl();
-        //JumpControl();
-        if (Input.GetKeyDown(KeyCode.Space) && jump && !gravity)
+        if (Input.GetKeyDown(KeyCode.Space) && jump && !gravityChange)
         {
-            //rb.AddForce(Vector3.up * 200);
-            if (pathFollower.gravityState == PathFollower.GravityState.Gravity)
-            {
-                player.DOMoveY(player.transform.position.y + .5f, .5f);
-                JumpRotate();
-                jumped = true;
-            }
-            else if (pathFollower.gravityState == PathFollower.GravityState.NonGravity)
-            {
-                Physics.gravity = gravityPos * -1;
-                player.DOMoveY(player.position.y - .5f, .5f);
-                JumpRotate();
-                jumped = true;
-            }
+            Jump();
+            JumpRotate();
         }
         followRot = new Vector3(transform.localEulerAngles.x + rotate, transform.localEulerAngles.y, transform.localEulerAngles.z);
-        if (jumped)
+        if (!jump)
         {
             pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
-            followRot = new Vector3(player.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
-        if (gravity)
+        else if (gravityChange)
         {
             pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
+        }
+        else if (jumped)
+        {
+            followRot = new Vector3(player.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
         player.position = pathFollower.followPos;
         player.localEulerAngles = followRot;
     }
     public void SphereMove()
     {
-        //JumpControl();
-        if (Input.GetKeyDown(KeyCode.Space) && jump && !gravity)
+        if (Input.GetKeyDown(KeyCode.Space) && jump && !gravityChange)
         {
-            //rb.AddForce(Vector3.up * 200);
-            if (pathFollower.gravityState == PathFollower.GravityState.Gravity)
-            {
-                player.DOMoveY(player.position.y + .5f, .5f);
-                jumped = true;
-            }
-            else if (pathFollower.gravityState == PathFollower.GravityState.NonGravity)
-            {
-                Physics.gravity = gravityPos * -1;
-                player.DOMoveY(player.position.y - .5f, .5f);
-                jumped = true;
-            }
+            Jump();
         }
         PathControl();
         Quaternion targetRotation = Quaternion.LookRotation(transform.forward, transform.up);
-        if (jumped)
+        if (!jump)
         {
             pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
         }
-        if (gravity)
+        else if (gravityChange)
         {
             pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
         }
@@ -95,7 +73,7 @@ public class PlayerMove : MonoBehaviour
     {
         PathControl();
         followRot = new Vector3(transform.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
-        if (gravity)
+        if (gravityChange)
         {
             pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
         }
@@ -106,14 +84,14 @@ public class PlayerMove : MonoBehaviour
     {
         PathControl();
         followRot = new Vector3(transform.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
-        if (gravity)
+        if (gravityChange)
         {
             pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
         }
         player.position = pathFollower.followPos;
         player.localEulerAngles = followRot;
     }
-    void PathControl()
+    public void PathControl()
     {
         distanceTravelled += Time.deltaTime;
         if (pathFollower.gravityState == PathFollower.GravityState.Gravity)
@@ -179,7 +157,7 @@ public class PlayerMove : MonoBehaviour
         //    jump = false;
         //}
     }
-    void JumpRotate()
+    public void JumpRotate()
     {
         switch (rotate)
         {
@@ -197,51 +175,62 @@ public class PlayerMove : MonoBehaviour
         }
         player.DOLocalRotate(new Vector3(transform.localEulerAngles.x + rotate, transform.localEulerAngles.y, transform.localEulerAngles.z), .85f).SetEase(Ease.Linear);
     }
+    public void Jump()
+    {
+        if (pathFollower.gravityState == PathFollower.GravityState.Gravity)
+        {
+            //rb.AddForce(Vector3.up * 200);
+            player.DOMoveY(player.position.y + .5f, .5f);
+            jumped = true;
+        }
+        else if (pathFollower.gravityState == PathFollower.GravityState.NonGravity)
+        {
+            Physics.gravity = gravityPos * -1;
+            //rb.AddForce(Vector3.down * 200);
+            player.DOMoveY(player.position.y - .5f, .5f);
+            jumped = true;
+        }
+    }
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireCube(player.position + (Vector3.up * .06f), Vector3.one * .125f);
     }
     public void Gravity(PathFollower.GravityState gravity)
     {
-        if (Input.GetKeyDown(KeyCode.C) && !this.gravity && !jumped)
+        if (Input.GetKeyDown(KeyCode.C) && !gravityChange && !jumped)
         {
             pathFollower.gravityState = gravity;
             PathControl();
-            this.gravity = true;
+            gravityChange = true;
             switch (gravity)
             {
                 case PathFollower.GravityState.Gravity:
-                    player.DOMoveY(transform.position.y + .1f, .2f).SetEase(Ease.Linear).OnComplete(() =>
-                    {
-                        this.gravity = false;
-                    });
-                    player.DORotate(transform.rotation.eulerAngles + new Vector3(rotate, 0, 0), .2f).SetEase(Ease.Linear);
+                    PathUpdate(transform.position.y + .1f);
                     break;
                 case PathFollower.GravityState.NonGravity:
-                    player.DOMoveY(transform.position.y - .1f, .2f).SetEase(Ease.Linear).OnComplete(() =>
-                    {
-                        this.gravity = false;
-                    });
-                    player.DORotate(transform.rotation.eulerAngles + new Vector3(rotate, 0, 0), .2f).SetEase(Ease.Linear);
+                    PathUpdate(transform.position.y - .1f);
                     break;
                 case PathFollower.GravityState.Middle:
-                    player.DOMoveY(transform.position.y, .2f).SetEase(Ease.Linear).OnComplete(() =>
-                    {
-                        this.gravity = false;
-                    });
-                    player.DORotate(transform.rotation.eulerAngles + new Vector3(rotate, 0, 0), .2f).SetEase(Ease.Linear);
+                    PathUpdate(transform.position.y);
                     break;
                 default:
                     break;
             }
         }
     }
+    public void PathUpdate(float pos)
+    {
+        player.DOMoveY(pos, .2f).SetEase(Ease.Linear).OnComplete(() =>
+        {
+            this.gravityChange = false;
+        });
+        player.DORotate(transform.rotation.eulerAngles + new Vector3(rotate, 0, 0), .2f).SetEase(Ease.Linear);
+    }
     public void TrapCrash()
     {
         RaycastHit hit;
         if (Physics.Raycast(player.position, Vector3.right, out hit, .125f, trapLayer))
         {
-            hit.transform.gameObject.SetActive(false);
             gameOverPanel.DOFade(1, 1).SetEase(Ease.Linear).OnComplete(() =>
             {
                 distanceTravelled = startDistanceTravelled;

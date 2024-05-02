@@ -29,6 +29,10 @@ public class PathFollower : MonoBehaviour
     {
         playerMove = GetComponent<PlayerMove>();
     }
+    private void Start()
+    {
+        startPos = playerMove.player.transform.position;
+    }
     void Update()
     {
         switch (gravityState)
@@ -38,9 +42,12 @@ public class PathFollower : MonoBehaviour
                 if (playerState == PlayerState.Cube || playerState == PlayerState.Sphere)
                 {
                     playerMove.GravityJumpControl();
-                    playerMove.Gravity(GravityState.NonGravity);
+                    if (playerMove.nongravity)
+                    {
+                        playerMove.Gravity(GravityState.NonGravity);
+                    }
                 }
-                else
+                else if (playerState == PlayerState.Triangle || playerState == PlayerState.Submarine)
                 {
                     lastGravityState = GravityState.Gravity;
                     playerMove.Gravity(GravityState.Middle);
@@ -51,9 +58,12 @@ public class PathFollower : MonoBehaviour
                 if (playerState == PlayerState.Cube || playerState == PlayerState.Sphere)
                 {
                     playerMove.NongravityJumpControl();
-                    playerMove.Gravity(GravityState.Gravity);
+                    if (playerMove.gravity)
+                    {
+                        playerMove.Gravity(GravityState.Gravity);
+                    }
                 }
-                else
+                else if(playerState == PlayerState.Triangle || playerState == PlayerState.Submarine)
                 {
                     lastGravityState = GravityState.NonGravity;
                     playerMove.Gravity(GravityState.Middle);
