@@ -6,16 +6,17 @@ using PathCreation;
 
 public class PlayerMove : MonoBehaviour
 {
-    public PathCreator gravityPathCreator, ungravityPathCreator, middleTrianglePathCreator, middleSubmarinePathCreator;
-    public Transform player;
+    public PathCreator gravityPathCreator, ungravityPathCreator, middleTrianglePathCreator, middleSubmarinePathCreator, camPathCreator;
+    public Transform player, virtualCam;
     public float speed;
     public LayerMask groundLayer, trapLayer;
-    bool jump;
+    public bool jump, jumpPlatform = true;
     public bool gravityChange, jumped, gravity, nongravity;
     public float distanceTravelled, startDistanceTravelled;
     public float rotate = 0, currentRotationX;
     Rigidbody rb;
-    Vector3  followRot, gravityPos;
+    public Vector3 followRot;
+    Vector3 gravityPos;
     PathFollower pathFollower;
     [SerializeField] CanvasGroup gameOverPanel;
     private void Awake()
@@ -27,26 +28,35 @@ public class PlayerMove : MonoBehaviour
     public void CubeMove()
     {
         PathControl();
-        if (Input.GetKeyDown(KeyCode.Space) && jump && !gravityChange)
+        if (Input.GetKeyDown(KeyCode.Space) && !jumped && !gravityChange)
         {
             Jump();
-            JumpRotate();
         }
-        followRot = new Vector3(transform.localEulerAngles.x + rotate, transform.localEulerAngles.y, transform.localEulerAngles.z);
-        if (!jump)
+        pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
+        if (!jump && !jumpPlatform)
         {
-            pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
+            //pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
+            Quaternion targetRotation = Quaternion.LookRotation(transform.forward, transform.up);
+            player.rotation = Quaternion.Euler(player.rotation.eulerAngles.x, targetRotation.eulerAngles.y, targetRotation.eulerAngles.z);
+            currentRotationX += Time.deltaTime * 100;
+            player.rotation = Quaternion.Euler(currentRotationX + transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+            //player.rotation = Quaternion.Euler(currentRotationX, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+            //player.Rotate(new Vector3(90, 0, 0) * Time.deltaTime);
+            followRot = new Vector3(player.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
-        else if (gravityChange)
+        else if ((gravityChange || jump) && !jumped)
         {
-            pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
+            //pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
+            followRot = new Vector3(transform.localEulerAngles.x + currentRotationX, transform.localEulerAngles.y, transform.localEulerAngles.z);
+            //player.rotation = Quaternion.Euler(currentRotationX + transform.localEulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
         }
         else if (jumped)
         {
             followRot = new Vector3(player.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
+            //player.rotation = Quaternion.Euler(currentRotationX + transform.localEulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
         }
         player.position = pathFollower.followPos;
-        player.localEulerAngles = followRot;
+        //player.localEulerAngles = followRot;
     }
     public void SphereMove()
     {
@@ -55,6 +65,7 @@ public class PlayerMove : MonoBehaviour
             Jump();
         }
         PathControl();
+        pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
         Quaternion targetRotation = Quaternion.LookRotation(transform.forward, transform.up);
         if (!jump)
         {
@@ -119,6 +130,7 @@ public class PlayerMove : MonoBehaviour
                 transform.rotation = middleSubmarinePathCreator.path.GetRotationAtDistance(distanceTravelled);
             }
         }
+        virtualCam.position = camPathCreator.path.GetPointAtDistance(distanceTravelled);
     }
     public void GravityJumpControl()
     {
@@ -159,35 +171,40 @@ public class PlayerMove : MonoBehaviour
     }
     public void JumpRotate()
     {
+        //player.Rotate(new Vector3(90, 0, 0) * Time.deltaTime);
+        //followRot = new Vector3(player.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
         switch (rotate)
         {
             case 0:
                 rotate = 90;
+                Debug.Log(rotate);
                 break;
             case 90:
                 rotate = 180;
+                Debug.Log(rotate);
                 break;
             case 180:
                 rotate = 90;
+                Debug.Log(rotate);
                 break;
             default:
                 break;
         }
-        player.DOLocalRotate(new Vector3(transform.localEulerAngles.x + rotate, transform.localEulerAngles.y, transform.localEulerAngles.z), .85f).SetEase(Ease.Linear);
+        player.DOLocalRotate(new Vector3(transform.localEulerAngles.x + rotate, transform.localEulerAngles.y, transform.localEulerAngles.z), .1f).SetEase(Ease.Linear);
     }
     public void Jump()
     {
         if (pathFollower.gravityState == PathFollower.GravityState.Gravity)
         {
-            //rb.AddForce(Vector3.up * 200);
-            player.DOMoveY(player.position.y + .5f, .5f);
+            rb.AddForce(Vector3.up * 4, ForceMode.Impulse);
+            //player.DOMoveY(player.position.y + .5f, .5f);
             jumped = true;
         }
         else if (pathFollower.gravityState == PathFollower.GravityState.NonGravity)
         {
             Physics.gravity = gravityPos * -1;
-            //rb.AddForce(Vector3.down * 200);
-            player.DOMoveY(player.position.y - .5f, .5f);
+            rb.AddForce(Vector3.down * 4, ForceMode.Impulse);
+            //player.DOMoveY(player.position.y - .5f, .5f);
             jumped = true;
         }
     }
@@ -231,40 +248,44 @@ public class PlayerMove : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(player.position, Vector3.right, out hit, .125f, trapLayer))
         {
-            gameOverPanel.DOFade(1, 1).SetEase(Ease.Linear).OnComplete(() =>
-            {
-                distanceTravelled = startDistanceTravelled;
-                transform.position = pathFollower.startPos;
-                player.position = pathFollower.startPos;
-                player.GetComponent<MeshFilter>().mesh = pathFollower.startMesh;
-                pathFollower.gravityState = pathFollower.startGravityState;
-                pathFollower.playerState = pathFollower.startPlayerState;
-                player.GetComponent<BoxCollider>().enabled = false;
-                player.GetComponent<SphereCollider>().enabled = false;
-                switch (pathFollower.playerState)
-                {
-                    case PathFollower.PlayerState.Cube:
-                        player.GetComponent<BoxCollider>().enabled = true;
-                        break;
-                    case PathFollower.PlayerState.Sphere:
-                        player.GetComponent<SphereCollider>().enabled = true;
-                        break;
-                    case PathFollower.PlayerState.Triangle:
-                        player.GetComponent<BoxCollider>().enabled = true;
-                        break;
-                    case PathFollower.PlayerState.Submarine:
-                        player.GetComponent<BoxCollider>().enabled = true;
-                        break;
-                    default:
-                        break;
-                }
-                gameOverPanel.DOFade(0, 1).SetEase(Ease.Linear).OnComplete(() =>
-                {
-                    pathFollower.enabled = true;
-                });
-            });
-            pathFollower.enabled = false;
+            Trap();
         }
-        Debug.DrawRay(player.position, Vector3.right * .125f, Color.red);
+    }
+    public void Trap()
+    {
+        gameOverPanel.DOFade(1, 1).SetEase(Ease.Linear).OnComplete(() =>
+        {
+            distanceTravelled = startDistanceTravelled;
+            transform.position = pathFollower.startPos;
+            player.position = pathFollower.startPos;
+            virtualCam.position = camPathCreator.path.GetPointAtDistance(distanceTravelled);
+            player.GetComponent<MeshFilter>().mesh = pathFollower.startMesh;
+            pathFollower.gravityState = pathFollower.startGravityState;
+            pathFollower.playerState = pathFollower.startPlayerState;
+            player.GetComponent<BoxCollider>().enabled = false;
+            player.GetComponent<SphereCollider>().enabled = false;
+            switch (pathFollower.playerState)
+            {
+                case PathFollower.PlayerState.Cube:
+                    player.GetComponent<BoxCollider>().enabled = true;
+                    break;
+                case PathFollower.PlayerState.Sphere:
+                    player.GetComponent<SphereCollider>().enabled = true;
+                    break;
+                case PathFollower.PlayerState.Triangle:
+                    player.GetComponent<BoxCollider>().enabled = true;
+                    break;
+                case PathFollower.PlayerState.Submarine:
+                    player.GetComponent<BoxCollider>().enabled = true;
+                    break;
+                default:
+                    break;
+            }
+            gameOverPanel.DOFade(0, 1).SetEase(Ease.Linear).OnComplete(() =>
+            {
+                pathFollower.enabled = true;
+            });
+        });
+        pathFollower.enabled = false;
     }
 }
