@@ -8,12 +8,12 @@ public class PlayerMove : MonoBehaviour
 {
     public PathCreator gravityPathCreator, ungravityPathCreator, middleTrianglePathCreator, middleSubmarinePathCreator, camPathCreator;
     public Transform player, virtualCam;
-    public float speed;
     public LayerMask groundLayer, trapLayer;
-    public bool jump, jumpPlatform = true;
+    public bool jump;
     public bool gravityChange, jumped, gravity, nongravity;
     public float distanceTravelled, startDistanceTravelled;
     public float rotate = 0, currentRotationX;
+    public int jumpCount;
     Rigidbody rb;
     public Vector3 followRot;
     Vector3 gravityPos;
@@ -30,30 +30,29 @@ public class PlayerMove : MonoBehaviour
         PathControl();
         if (Input.GetKeyDown(KeyCode.Space) && !jumped && !gravityChange)
         {
+            jumpCount++;
             Jump();
         }
         pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
-        if (!jump && !jumpPlatform)
+        if (!jump)
         {
-            //pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
             Quaternion targetRotation = Quaternion.LookRotation(transform.forward, transform.up);
             player.rotation = Quaternion.Euler(player.rotation.eulerAngles.x, targetRotation.eulerAngles.y, targetRotation.eulerAngles.z);
             currentRotationX += Time.deltaTime * 100;
-            player.rotation = Quaternion.Euler(currentRotationX + transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
-            //player.rotation = Quaternion.Euler(currentRotationX, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+            player.rotation = Quaternion.Euler(currentRotationX, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
             //player.Rotate(new Vector3(90, 0, 0) * Time.deltaTime);
             followRot = new Vector3(player.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
         }
         else if ((gravityChange || jump) && !jumped)
         {
-            //pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
+            rb.constraints = RigidbodyConstraints.FreezePosition;
+            DOTween.To(() => currentRotationX, x => currentRotationX = x, 90 * jumpCount, .1f).SetEase(Ease.Linear);
             followRot = new Vector3(transform.localEulerAngles.x + currentRotationX, transform.localEulerAngles.y, transform.localEulerAngles.z);
-            //player.rotation = Quaternion.Euler(currentRotationX + transform.localEulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
+            player.rotation = Quaternion.Euler(currentRotationX + transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
         }
         else if (jumped)
         {
             followRot = new Vector3(player.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
-            //player.rotation = Quaternion.Euler(currentRotationX + transform.localEulerAngles.x, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
         }
         player.position = pathFollower.followPos;
         //player.localEulerAngles = followRot;
@@ -73,6 +72,7 @@ public class PlayerMove : MonoBehaviour
         }
         else if (gravityChange)
         {
+            rb.constraints = RigidbodyConstraints.FreezePosition;
             pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
         }
         player.position = pathFollower.followPos;
@@ -136,7 +136,6 @@ public class PlayerMove : MonoBehaviour
     {
         if (Physics.Raycast(player.position, Vector3.down, .125f, groundLayer) && !jump)
         {
-            Physics.gravity = gravityPos;
             jump = true;
             jumped = false;
         }
@@ -150,7 +149,6 @@ public class PlayerMove : MonoBehaviour
         Collider[] colliders = Physics.OverlapBox(player.position + (Vector3.up * .06f), Vector3.one * .125f, Quaternion.identity, groundLayer);
         if (colliders.Length > 0 && !jump)
         {
-            Physics.gravity = gravityPos;
             jump = true;
             jumped = false;
         }
@@ -171,8 +169,6 @@ public class PlayerMove : MonoBehaviour
     }
     public void JumpRotate()
     {
-        //player.Rotate(new Vector3(90, 0, 0) * Time.deltaTime);
-        //followRot = new Vector3(player.localEulerAngles.x, transform.localEulerAngles.y, transform.localEulerAngles.z);
         switch (rotate)
         {
             case 0:
@@ -190,18 +186,21 @@ public class PlayerMove : MonoBehaviour
             default:
                 break;
         }
-        player.DOLocalRotate(new Vector3(transform.localEulerAngles.x + rotate, transform.localEulerAngles.y, transform.localEulerAngles.z), .1f).SetEase(Ease.Linear);
+        player.DOLocalRotate(new Vector3(transform.localEulerAngles.x + rotate, transform.localEulerAngles.y, transform.localEulerAngles.z), .85f).SetEase(Ease.Linear);
     }
     public void Jump()
     {
         if (pathFollower.gravityState == PathFollower.GravityState.Gravity)
         {
+            rb.constraints &= ~RigidbodyConstraints.FreezePositionY;
+            Physics.gravity = gravityPos;
             rb.AddForce(Vector3.up * 4, ForceMode.Impulse);
             //player.DOMoveY(player.position.y + .5f, .5f);
             jumped = true;
         }
         else if (pathFollower.gravityState == PathFollower.GravityState.NonGravity)
         {
+            rb.constraints &= ~RigidbodyConstraints.FreezePositionY;
             Physics.gravity = gravityPos * -1;
             rb.AddForce(Vector3.down * 4, ForceMode.Impulse);
             //player.DOMoveY(player.position.y - .5f, .5f);
@@ -222,9 +221,13 @@ public class PlayerMove : MonoBehaviour
             switch (gravity)
             {
                 case PathFollower.GravityState.Gravity:
+                    //rb.constraints = RigidbodyConstraints.FreezePositionY;
+                    //Physics.gravity = gravityPos * 1;
                     PathUpdate(transform.position.y + .1f);
                     break;
                 case PathFollower.GravityState.NonGravity:
+                    //rb.constraints = RigidbodyConstraints.FreezePositionY;
+                    //Physics.gravity = gravityPos * -1;
                     PathUpdate(transform.position.y - .1f);
                     break;
                 case PathFollower.GravityState.Middle:
@@ -239,9 +242,9 @@ public class PlayerMove : MonoBehaviour
     {
         player.DOMoveY(pos, .2f).SetEase(Ease.Linear).OnComplete(() =>
         {
-            this.gravityChange = false;
+            gravityChange = false;
         });
-        player.DORotate(transform.rotation.eulerAngles + new Vector3(rotate, 0, 0), .2f).SetEase(Ease.Linear);
+        player.DORotate(transform.rotation.eulerAngles + new Vector3(currentRotationX, 0, 0), .2f).SetEase(Ease.Linear);
     }
     public void TrapCrash()
     {
@@ -255,6 +258,8 @@ public class PlayerMove : MonoBehaviour
     {
         gameOverPanel.DOFade(1, 1).SetEase(Ease.Linear).OnComplete(() =>
         {
+            jumpCount = 0;
+            currentRotationX = 0;
             distanceTravelled = startDistanceTravelled;
             transform.position = pathFollower.startPos;
             player.position = pathFollower.startPos;

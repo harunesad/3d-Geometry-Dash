@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using PathCreation;
 using DG.Tweening;
+using TMPro;
 
 public class PathFollower : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public class PathFollower : MonoBehaviour
     public Mesh startMesh;
     public Vector3 startPos;
     public PlayerState playerState, startPlayerState;
+    [SerializeField] CanvasGroup startPanel;
+    float time = 3.5f;
     public enum PlayerState
     {
         Cube,
@@ -35,6 +38,17 @@ public class PathFollower : MonoBehaviour
     }
     void Update()
     {
+        time -= Time.deltaTime;
+        if (time < 0)
+        {
+            startPanel.GetComponentInChildren<TextMeshProUGUI>().text = ((int)time).ToString();
+            startPanel.DOFade(0, 1).SetEase(Ease.Linear);
+        }
+        else
+        {
+            startPanel.GetComponentInChildren<TextMeshProUGUI>().text = ((int)time).ToString();
+            return;
+        }
         switch (gravityState)
         {
             case GravityState.Gravity:
@@ -74,12 +88,10 @@ public class PathFollower : MonoBehaviour
                 if (lastGravityState == GravityState.NonGravity)
                 {
                     playerMove.Gravity(GravityState.Gravity);
-                    //gravityState = GravityState.Gravity;
                 }
                 else if (lastGravityState == GravityState.Gravity)
                 {
                     playerMove.Gravity(GravityState.NonGravity);
-                    //gravityState = GravityState.NonGravity;
                 }
                 break;
             default:

@@ -10,41 +10,13 @@ public class PlayerChange : MonoBehaviour
     [SerializeField] PathFollower pathFollower;
     [SerializeField] bool gravity, nongravity, lightUpdate;
     [SerializeField] Color lightColor;
-    [SerializeField] Light light;
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    [SerializeField] Light lightObj;
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.layer == 6)
         {
             PlayerMove playerMove = pathFollower.GetComponent<PlayerMove>();
-            other.GetComponent<BoxCollider>().enabled = false;
-            other.GetComponent<SphereCollider>().enabled = false;
-            switch (pathFollower.playerState)
-            {
-                case PathFollower.PlayerState.Cube:
-                    other.GetComponent<BoxCollider>().enabled = true;
-                    break;
-                case PathFollower.PlayerState.Sphere:
-                    other.GetComponent<SphereCollider>().enabled = true;
-                    break;
-                case PathFollower.PlayerState.Triangle:
-                    other.GetComponent<BoxCollider>().enabled = true;
-                    break;
-                case PathFollower.PlayerState.Submarine:
-                    other.GetComponent<BoxCollider>().enabled = true;
-                    break;
-                default:
-                    break;
-            }
+            ColliderUpdate(other);
             pathFollower.gravityState = PathFollower.GravityState.Gravity;
             playerMove.PathControl();
             playerMove.gravityChange = true;
@@ -61,6 +33,7 @@ public class PlayerChange : MonoBehaviour
             other.GetComponent<MeshFilter>().mesh = newMesh;
             pathFollower.playerState = playerState;
             playerMove.rotate = 0;
+            playerMove.jumpCount = 0;
             playerMove.currentRotationX = 0;
             playerMove.jumped = false;
             pathFollower.startGravityState = PathFollower.GravityState.Gravity;
@@ -70,8 +43,30 @@ public class PlayerChange : MonoBehaviour
             playerMove.startDistanceTravelled = playerMove.distanceTravelled;
             if (lightUpdate)
             {
-                light.color = lightColor;
+                lightObj.color = lightColor;
             }
+        }
+    }
+    void ColliderUpdate(Collider other)
+    {
+        other.GetComponent<BoxCollider>().enabled = false;
+        other.GetComponent<SphereCollider>().enabled = false;
+        switch (pathFollower.playerState)
+        {
+            case PathFollower.PlayerState.Cube:
+                other.GetComponent<BoxCollider>().enabled = true;
+                break;
+            case PathFollower.PlayerState.Sphere:
+                other.GetComponent<SphereCollider>().enabled = true;
+                break;
+            case PathFollower.PlayerState.Triangle:
+                other.GetComponent<BoxCollider>().enabled = true;
+                break;
+            case PathFollower.PlayerState.Submarine:
+                other.GetComponent<BoxCollider>().enabled = true;
+                break;
+            default:
+                break;
         }
     }
 }
