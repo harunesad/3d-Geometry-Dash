@@ -6,7 +6,8 @@ using PathCreation;
 
 public class PlayerMove : MonoBehaviour
 {
-    public PathCreator gravityPathCreator, ungravityPathCreator, middleTrianglePathCreator, middleSubmarinePathCreator, camPathCreator;
+    public PathCreator gravityPathCreator, ungravityPathCreator, gravityjumpPathCreator, ungravityjumpPathCreator,
+        middleTrianglePathCreator, middleSubmarinePathCreator, camPathCreator;
     public Transform player, virtualCam;
     public LayerMask groundLayer, trapLayer;
     public bool jump;
@@ -14,9 +15,9 @@ public class PlayerMove : MonoBehaviour
     public float distanceTravelled, startDistanceTravelled;
     public float rotate = 0, currentRotationX;
     public int jumpCount;
-    Rigidbody rb;
+    public Rigidbody rb;
     public Vector3 followRot;
-    Vector3 gravityPos;
+    public Vector3 gravityPos;
     PathFollower pathFollower;
     [SerializeField] CanvasGroup gameOverPanel;
     private void Awake()
@@ -34,8 +35,9 @@ public class PlayerMove : MonoBehaviour
             Jump();
         }
         pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
-        if (!jump)
+        if (!jump && !gravityChange)
         {
+            rb.constraints &= ~RigidbodyConstraints.FreezePositionY;
             Quaternion targetRotation = Quaternion.LookRotation(transform.forward, transform.up);
             player.rotation = Quaternion.Euler(player.rotation.eulerAngles.x, targetRotation.eulerAngles.y, targetRotation.eulerAngles.z);
             currentRotationX += Time.deltaTime * 100;
@@ -45,6 +47,7 @@ public class PlayerMove : MonoBehaviour
         }
         else if ((gravityChange || jump) && !jumped)
         {
+            gravityChange = false;
             rb.constraints = RigidbodyConstraints.FreezePosition;
             DOTween.To(() => currentRotationX, x => currentRotationX = x, 90 * jumpCount, .1f).SetEase(Ease.Linear);
             followRot = new Vector3(transform.localEulerAngles.x + currentRotationX, transform.localEulerAngles.y, transform.localEulerAngles.z);
@@ -68,12 +71,14 @@ public class PlayerMove : MonoBehaviour
         Quaternion targetRotation = Quaternion.LookRotation(transform.forward, transform.up);
         if (!jump)
         {
+            rb.constraints &= ~RigidbodyConstraints.FreezePositionY;
             pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
         }
-        else if (gravityChange)
+        else if ((gravityChange || jump) && !jumped)
         {
+            gravityChange = false;
             rb.constraints = RigidbodyConstraints.FreezePosition;
-            pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
+            //pathFollower.followPos = new Vector3(transform.position.x, player.position.y, transform.position.z);
         }
         player.position = pathFollower.followPos;
         player.rotation = Quaternion.Euler(player.rotation.eulerAngles.x, targetRotation.eulerAngles.y, targetRotation.eulerAngles.z);
@@ -107,13 +112,29 @@ public class PlayerMove : MonoBehaviour
         distanceTravelled += Time.deltaTime;
         if (pathFollower.gravityState == PathFollower.GravityState.Gravity)
         {
-            transform.position = gravityPathCreator.path.GetPointAtDistance(distanceTravelled);
-            transform.rotation = gravityPathCreator.path.GetRotationAtDistance(distanceTravelled);
+            if (pathFollower.playerState == PathFollower.PlayerState.Cube || pathFollower.playerState == PathFollower.PlayerState.Sphere)
+            {
+                transform.position = gravityjumpPathCreator.path.GetPointAtDistance(distanceTravelled);
+                transform.rotation = gravityjumpPathCreator.path.GetRotationAtDistance(distanceTravelled);
+            }
+            else
+            {
+                transform.position = gravityPathCreator.path.GetPointAtDistance(distanceTravelled);
+                transform.rotation = gravityPathCreator.path.GetRotationAtDistance(distanceTravelled);
+            }
         }
         else if (pathFollower.gravityState == PathFollower.GravityState.NonGravity)
         {
-            transform.position = ungravityPathCreator.path.GetPointAtDistance(distanceTravelled);
-            transform.rotation = ungravityPathCreator.path.GetRotationAtDistance(distanceTravelled);
+            if (pathFollower.playerState == PathFollower.PlayerState.Cube || pathFollower.playerState == PathFollower.PlayerState.Sphere)
+            {
+                transform.position = ungravityjumpPathCreator.path.GetPointAtDistance(distanceTravelled);
+                transform.rotation = ungravityjumpPathCreator.path.GetRotationAtDistance(distanceTravelled);
+            }
+            else
+            {
+                transform.position = ungravityPathCreator.path.GetPointAtDistance(distanceTravelled);
+                transform.rotation = ungravityPathCreator.path.GetRotationAtDistance(distanceTravelled);
+            }
         }
         else if (pathFollower.gravityState == PathFollower.GravityState.Middle)
         {
@@ -195,7 +216,6 @@ public class PlayerMove : MonoBehaviour
             rb.constraints &= ~RigidbodyConstraints.FreezePositionY;
             Physics.gravity = gravityPos;
             rb.AddForce(Vector3.up * 4, ForceMode.Impulse);
-            //player.DOMoveY(player.position.y + .5f, .5f);
             jumped = true;
         }
         else if (pathFollower.gravityState == PathFollower.GravityState.NonGravity)
@@ -203,7 +223,6 @@ public class PlayerMove : MonoBehaviour
             rb.constraints &= ~RigidbodyConstraints.FreezePositionY;
             Physics.gravity = gravityPos * -1;
             rb.AddForce(Vector3.down * 4, ForceMode.Impulse);
-            //player.DOMoveY(player.position.y - .5f, .5f);
             jumped = true;
         }
     }
@@ -215,19 +234,20 @@ public class PlayerMove : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.C) && !gravityChange && !jumped)
         {
+            jumped = true;
             pathFollower.gravityState = gravity;
             PathControl();
             gravityChange = true;
             switch (gravity)
             {
                 case PathFollower.GravityState.Gravity:
-                    //rb.constraints = RigidbodyConstraints.FreezePositionY;
-                    //Physics.gravity = gravityPos * 1;
+                    rb.constraints &= ~RigidbodyConstraints.FreezePositionY;
+                    Physics.gravity = gravityPos * 1;
                     PathUpdate(transform.position.y + .1f);
                     break;
                 case PathFollower.GravityState.NonGravity:
-                    //rb.constraints = RigidbodyConstraints.FreezePositionY;
-                    //Physics.gravity = gravityPos * -1;
+                    rb.constraints &= ~RigidbodyConstraints.FreezePositionY;
+                    Physics.gravity = gravityPos * -1;
                     PathUpdate(transform.position.y - .1f);
                     break;
                 case PathFollower.GravityState.Middle:
@@ -240,10 +260,13 @@ public class PlayerMove : MonoBehaviour
     }
     public void PathUpdate(float pos)
     {
-        player.DOMoveY(pos, .2f).SetEase(Ease.Linear).OnComplete(() =>
+        if (pathFollower.playerState == PathFollower.PlayerState.Triangle || pathFollower.playerState == PathFollower.PlayerState.Submarine)
         {
-            gravityChange = false;
-        });
+            player.DOMoveY(pos, .2f).SetEase(Ease.Linear).OnComplete(() =>
+            {
+                gravityChange = false;
+            });
+        }
         player.DORotate(transform.rotation.eulerAngles + new Vector3(currentRotationX, 0, 0), .2f).SetEase(Ease.Linear);
     }
     public void TrapCrash()
@@ -258,6 +281,8 @@ public class PlayerMove : MonoBehaviour
     {
         gameOverPanel.DOFade(1, 1).SetEase(Ease.Linear).OnComplete(() =>
         {
+            gravityChange = false;
+            rb.constraints = RigidbodyConstraints.FreezePosition;
             jumpCount = 0;
             currentRotationX = 0;
             distanceTravelled = startDistanceTravelled;
